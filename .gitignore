@@ -1,0 +1,5 @@
+__pycache__
+*.swp
+**/.dsc
+dsc/dsc_result.html
+dsc/dsc_result
