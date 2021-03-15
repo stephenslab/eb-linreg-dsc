@@ -2,9 +2,9 @@ import numpy as np
 import collections
 from sos.utils import env
 
-def sample_betas(p, s, method="normal", bfix=None):
+def sample_betas (p, bidx, method="normal", bfix=None):
     beta = np.zeros(p)
-    bidx = np.random.choice(p, s, replace = False)
+    s = bidx.shape[0]
 
     # sample beta from Gaussian(mean = 0, sd = 1)
     if method == "normal":
@@ -20,6 +20,58 @@ def sample_betas(p, s, method="normal", bfix=None):
             beta[bidx] = np.repeat(bfix, s)
 
     return beta
+
+
+def get_responses (X, b, sd):
+    return np.dot(X, b) + sd * np.random.normal(size = X.shape[0])
+
+
+def get_sd_from_pve (X, b, pve):
+    return np.sqrt(np.var(np.dot(X, b)) * (1 - pve) / pve)
+    
+
+def equicorr_predictors (n, p, s, pve, signal = "normal", seed = None, rho = 0.5, bfix = None):
+    '''
+    X is sampled from a multivariate normal, with covariance matrix S.
+    S has unit diagonal entries and constant off-diagonal entries rho.
+    '''
+    iidX  = np.random.normal(size = n * 2 * p).reshape(n * 2, p)
+    comR  = np.random.normal(size = n * 2).reshape(n * 2, 1)
+    Xall  = comR * np.sqrt(rho) + iidX * np.sqrt(1 - rho)
+    # split into training and test data
+    X     = Xall[:n, :]
+    Xtest = Xall[n:, :]
+    # sample betas
+    bidx  = np.random.choice(p, s, replace = False)
+    beta  = sample_betas(p, bidx, method = signal, bfix = bfix)
+    # obtain sd from pve
+    se    = get_sd_from_pve(X, beta, pve)
+    # calculate the responses
+    y     = get_responses(X,     beta, se)
+    ytest = get_responses(Xtest, beta, se)
+    return X, y, Xtest, ytest, beta, se
+
+
+def changepoint_predictors (n, p, s, snr, signal = "normal", seed = None, bfix = None):
+    '''
+    Trend-filtering data. 
+    '''
+    X = np.zeros((n, p))
+    #for i in range(p):
+    #    X[i:n, i] = np.arange(1, n - i + 1)
+    for j in range(min(n, p)):
+        for i in range(j+1, n):
+            X[i, j] = 1
+    Xtest = X.copy()
+    # sample betas
+    bidx  = np.random.choice(min(n, p), s, replace = False) 
+    beta  = sample_betas(p, bidx, method = signal, bfix = bfix)
+    # obtain sd from signal-to-noise ratio
+    se    = np.max(np.abs(beta)) / snr
+    # calculate the responses
+    y     = get_responses(X,     beta, se)
+    ytest = get_responses(Xtest, beta, se)
+    return X, y, Xtest, ytest, beta, se
 
 
 def sample_betas_fixtrend(p, s, bfix):
@@ -50,53 +102,3 @@ def sample_betas_fixtrend(p, s, bfix):
     beta[bidx]     = nonzerob
     beta[bidx + 1] = -nonzerob
     return beta
-
-
-def get_responses(X, b, sd):
-    return np.dot(X, b) + sd * np.random.normal(size = X.shape[0])
-
-
-def get_sd_from_pve(X, b, pve):
-    return np.sqrt(np.var(np.dot(X, b)) * (1 - pve) / pve)
-    
-
-def equicorr_predictors (n, p, s, pve, signal = "normal", seed = None, rho = 0.5, bfix = None):
-    '''
-    X is sampled from a multivariate normal, with covariance matrix S.
-    S has unit diagonal entries and constant off-diagonal entries rho.
-    '''
-    iidX  = np.random.normal(size = n * 2 * p).reshape(n * 2, p)
-    comR  = np.random.normal(size = n * 2).reshape(n * 2, 1)
-    Xall  = comR * np.sqrt(rho) + iidX * np.sqrt(1 - rho)
-    # split into training and test data
-    X     = Xall[:n, :]
-    Xtest = Xall[n:, :]
-    # sample betas
-    beta  = sample_betas(p, s, method = signal, bfix = bfix)
-    # obtain sd from pve
-    se    = get_sd_from_pve(X, beta, pve)
-    # calculate the responses
-    y     = get_responses(X,     beta, se)
-    ytest = get_responses(Xtest, beta, se)
-    return X, y, Xtest, ytest, beta, se
-
-
-def changepoint(n, p, s, snr, signal = "normal", seed = None, bfix = None):
-    '''
-    Trend-filtering data. 
-    '''
-    X = np.zeros((n, p))
-    #for i in range(p):
-    #    X[i:n, i] = np.arange(1, n - i + 1)
-    for j in range(min(n, p)):
-        for i in range(j+1, n):
-            X[i, j] = 1
-    Xtest = X.copy()
-    # sample betas
-    beta = sample_betas(p, s, method = signal, bfix = bfix)
-    # obtain sd from signal-to-noise ratio
-    se    = np.max(np.abs(beta)) / snr
-    # calculate the responses
-    y     = get_responses(X,     beta, se)
-    ytest = get_responses(Xtest, beta, se)
-    return X, y, Xtest, ytest, beta, se

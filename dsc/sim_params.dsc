@@ -45,12 +45,12 @@ equicorrgauss(simparams): equicorrgauss.py
   pve:     0.7
 
 indepgauss(equicorrgauss):
-  rho:    0.0
+  rho:     0.0
 
 changepoint(simparams): changepoint.py
-  snr:    10
+  snr:     10
 
 one_changepoint(changepoint):
-  sfix:   1
-  signal: "fixed"
-  bfix:   8
+  sfix:    1
+  signal:  "fixed"
+  bfix:    8
