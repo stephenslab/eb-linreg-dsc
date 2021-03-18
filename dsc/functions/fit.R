@@ -13,7 +13,7 @@
 # strength ("lambda") chosen by cross-validation, and (4) the
 # regression coefficients at this value of lambda.
 fit_ridge <- function (X, y, nfolds = 10)
-  fit_lasso(X,y,nfolds,0)
+  fit_lasso(X, y, nfolds, 0)
 
 # Fit a Lasso model to the data, and estimate the penalty strength
 # (lambda) using cross-validation. Input X should be an n x p numeric
@@ -23,11 +23,12 @@ fit_ridge <- function (X, y, nfolds = 10)
 # (3) the intercept at the penalty strength ("lambda") chosen by
 # cross-validation, and (4) the regression coefficients at this value
 # of lambda.
-fit_lasso <- function (X, y, nfolds = 10, alpha = 1) {
-  out.cv <- glmnet::cv.glmnet(X,y,alpha = alpha,nfolds = nfolds)
-  fit    <- glmnet::glmnet(X,y,alpha = alpha,standardize = FALSE)
-  b      <- as.vector(coef(fit,s = out.cv$lambda.min))
-  return(list(fit = fit,cv = out.cv,mu = b[1],beta = b[-1]))
+fit_lasso <- function (X, y, nfolds = 10, alpha = 1, cvlambda = "min") {
+  out.cv <- glmnet::cv.glmnet(X, y, alpha = alpha, nfolds = nfolds)
+  fit    <- glmnet::glmnet(X, y, alpha = alpha, standardize = FALSE)
+  cvs    <- if (cvlambda == "1se") out.cv$lambda.1se else out.cv$lambda.min
+  b      <- as.vector(coef(fit, s = cvs))
+  return(list(fit = fit, cv = out.cv, mu = b[1], beta = b[-1]))
 }
 
 # Fit an Elastic Net model to the data, and estimate the Elastic Net
@@ -42,7 +43,7 @@ fit_lasso <- function (X, y, nfolds = 10, alpha = 1) {
 # intercept at the penalty strength ("lambda") chosen by
 # cross-validation, and (3) the regression coefficients at this value
 # of lambda.
-fit_elastic_net <- function (X, y, nfolds = 10, alpha = seq(0,1,0.05)) {
+fit_elastic_net <- function (X, y, nfolds = 10, alpha = seq(0,1,0.05), cvlambda = "min") {
   n          <- nrow(X)
   foldid     <- rep_len(1:nfolds,n)
   out.cv     <- NULL
@@ -52,7 +53,7 @@ fit_elastic_net <- function (X, y, nfolds = 10, alpha = seq(0,1,0.05)) {
   # Identify the setting of alpha that minimizes the mean
   # cross-validation error.
   for (i in alpha) {
-    out <- glmnet::cv.glmnet(X,y,nfolds = nfolds,foldid = foldid,alpha = i)
+    out <- glmnet::cv.glmnet(X, y, nfolds = nfolds, foldid = foldid, alpha = i)
     if (min(out$cvm) < cvm.min) {
       cvm.min    <- min(out$cvm)
       alpha.min  <- i
@@ -61,9 +62,10 @@ fit_elastic_net <- function (X, y, nfolds = 10, alpha = seq(0,1,0.05)) {
   }
 
   # Fit the Elastic Net model using the chosen value of alpha.
-  fit <- glmnet::glmnet(X,y,standardize = FALSE,alpha = alpha.min)
-  b   <- as.vector(coef(fit,s = out.cv$lambda.min))
-  return(list(fit = fit,cv = out.cv,alpha = alpha.min,mu = b[1],
+  fit <- glmnet::glmnet(X, y, standardize = FALSE, alpha = alpha.min)
+  cvs <- if (cvlambda == "1se") out.cv$lambda.1se else out.cv$lambda.min
+  b   <- as.vector(coef(fit, s = cvs))
+  return(list(fit = fit, cv = out.cv, alpha = alpha.min, mu = b[1],
               beta = b[-1]))
 }
 
@@ -73,11 +75,11 @@ fit_elastic_net <- function (X, y, nfolds = 10, alpha = seq(0,1,0.05)) {
 # n. Note that we found that the prediction performance was more
 # robust when setting estimate_prior_variance = FALSE.
 fit_susie <- function (X, y, scaled_prior_variance = 0.2) {
-  fit <- susieR::susie(X,y,L = ncol(X),max_iter = 1000,standardize = FALSE,
+  fit <- susieR::susie(X, y, L = ncol(X), max_iter = 1000, standardize = FALSE,
                        scaled_prior_variance = scaled_prior_variance,
                        estimate_prior_variance = FALSE)
   b   <- as.vector(coef(fit))
-  return(list(fit = fit,mu = b[1],beta = b[-1]))
+  return(list(fit = fit, mu = b[1], beta = b[-1]))
 }
 
 # Compute a fully-factorized variational approximation for Bayesian
@@ -89,10 +91,10 @@ fit_susie <- function (X, y, scaled_prior_variance = 0.2) {
 # are averaged over the settings, whereas the hyperparameters are
 # automatically fitted separately for each logodds setting.
 fit_varbvs <- function (X, y) {
-  logodds <- seq(-log10(ncol(X)),1,length.out = 40)
-  fit     <- varbvs::varbvs(X,NULL,y,logodds = logodds,verbose = FALSE)
+  logodds <- seq(-log10(ncol(X)), 1, length.out = 40)
+  fit     <- varbvs::varbvs(X, NULL, y, logodds = logodds, verbose = FALSE)
   b       <- as.vector(coef(fit)[,"averaged"])
-  return(list(fit = fit,mu = b[1],beta = b[-1]))
+  return(list(fit = fit, mu = b[1], beta = b[-1]))
 }
 
 # Compute a fully-factorized variational approximation for the
@@ -101,14 +103,57 @@ fit_varbvs <- function (X, y) {
 # are chosen automatically based on the data. Input argument k
 # controls the number of mixture components.
 fit_varbvsmix <- function (X, y, k = 20) {
-  fit <- varbvs::varbvsmix(X,NULL,y,k,verbose = FALSE)
+  fit <- varbvs::varbvsmix(X, NULL, y, k, verbose = FALSE)
   b   <- as.vector(coef(fit))
-  return(list(fit = fit,mu = b[1],beta = b[-1]))
+  return(list(fit = fit, mu = b[1], beta = b[-1]))
 }
 
-fit_mr_ash <- function(X, y) {
-  fit  <- mr.ash.alpha::mr.ash(X,y,standardize = TRUE, intercept = TRUE,
-                              max.iter = 2000, sa2 = (4^((0:19)/20) - 1)^2,
-                              tol = list(epstol = 1e-12, convtol = 1e-8))
+
+# Fit "Mr.ASH" to the provided data, X and y.
+# X should be an n x p numeric matrix, and y should be a vector of length p
+# Mr.ASH is a variational empirical Bayes (VEB) method for multiple linear regression. 
+# The fitting algorithms (locally) maximize the approximate marginal likelihood 
+# (the "evidence lower bound", or ELBO) via coordinate-wise updates.
+# Several flavors have been implemented in the DSC pipeline which
+# requires different optional settings.
+fit_mr_ash <- function (X, y,
+                        max_iter = 2000, sa2 = NULL,
+                        init_pi = NULL, init_beta = NULL, init_sigma2 = NULL,
+                        update_pi = TRUE, update_sigma2 = TRUE, 
+                        update_order = NULL,
+                        tol = list(epstol = 1e-12, convtol = 1e-8)) {
+  fit  <- suppressWarnings(mr.ash.alpha::mr.ash(X, y, 
+                                                standardize = FALSE, intercept = TRUE,
+                                                max.iter = max_iter, sa2 = sa2,
+                                                beta.init = init_beta, 
+                                                update.pi = update_pi, pi = init_pi,
+                                                update.sigma2 = update_sigma2, sigma2 = init_sigma2,
+                                                update.order = update_order,
+                                                tol = tol))
   return(list(fit = fit,mu = fit$intercept, beta = fit$beta))
 }
+
+fit_ncvreg <- function (X, y, penalty, nfolds = 10, gamma = seq(1, 5, length.out = 10)) {
+  cve.min <- Inf
+  # Iterate through all values of gamma to select the best fit
+  for (g in gamma) {
+    cvfit <- ncvreg::cv.ncvreg(X, y, penalty = penalty, gamma = g, nfolds = nfolds)
+    if (cve.min > min(cvfit$cve)) {
+      fit     <- cvfit
+      cve.min <- min(fit$cve)
+    }
+  }
+  b <- as.vector(coef(fit))
+  return (list(fit = fit, mu = b[1], beta = b[-1]))
+}
+
+
+fit_scad <- function (X, y, nfolds = 10, gamma = seq(2.1, 5.3, length.out = 11)) {
+  return (fit_ncvreg(X, y, "SCAD", nfolds = nfolds, gamma = gamma))
+}
+
+
+fit_mcp  <- function (X, y, nfolds = 10, gamma = seq(1.1, 4.9, length.out = 11)) {
+  return (fit_ncvreg(X, y, "MCP", nfolds = nfolds, gamma = gamma))
+}
+
