@@ -23,6 +23,7 @@ which does not work with pkl files.
 '''
 def dscquery(dsc_outdir, targets,
              conditions = None,
+             groups = None,
              verbose = True,
              sep = "::",
              dolr = "##"
@@ -34,7 +35,6 @@ def dscquery(dsc_outdir, targets,
 
     def list_to_string(xlist):
         x = sep.join(xlist)
-        x = x.replace(" " , "")
         x = x.replace("$", dolr)
         return x
 
@@ -46,6 +46,8 @@ def dscquery(dsc_outdir, targets,
     cmd += ["--targets",   list_to_string(targets)]
     if conditions is not None:
         cmd += ["--conditions", list_to_string(conditions)]
+    if groups is not None:
+        cmd += ["--groups",     list_to_string(groups)]
 
     process = subprocess.Popen(cmd,
                                stdout = subprocess.PIPE,

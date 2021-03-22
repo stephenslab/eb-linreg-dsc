@@ -74,8 +74,8 @@ fit_elastic_net <- function (X, y, nfolds = 10, alpha = seq(0,1,0.05), cvlambda 
 # an n x p numeric matrix, and y should be a numeric vector of length
 # n. Note that we found that the prediction performance was more
 # robust when setting estimate_prior_variance = FALSE.
-fit_susie <- function (X, y, scaled_prior_variance = 0.2) {
-  fit <- susieR::susie(X, y, L = ncol(X), max_iter = 1000, standardize = FALSE,
+fit_susie <- function (X, y, L = 20, scaled_prior_variance = 0.2) {
+  fit <- susieR::susie(X, y, L = L, max_iter = 1000, standardize = FALSE,
                        scaled_prior_variance = scaled_prior_variance,
                        estimate_prior_variance = FALSE)
   b   <- as.vector(coef(fit))
@@ -108,6 +108,66 @@ fit_varbvsmix <- function (X, y, k = 20) {
   return(list(fit = fit, mu = b[1], beta = b[-1]))
 }
 
+# Fit a Bayesian Lasso model to the data
+fit_blasso <- function (X, y, niter = 1500, burn_in = 500) {
+  out <- tempfile()
+  fit <- suppressWarnings(BGLR::BGLR(y, ETA = list(list(X = X, model="BL", standardize = FALSE)),
+                                     verbose = FALSE, nIter = niter, burnIn = burn_in,
+                                     saveAt = out))
+  b   <- c(fit$ETA[[1]]$b)
+  return (list(fit = fit, mu = fit$mu, beta = b))
+}
+
+# Fit a BayesB model to the data
+fit_bayesb <- function (X, y, niter = 1500, burn_in = 500) {
+  out <- tempfile()
+  fit <- suppressWarnings(BGLR::BGLR(y, ETA = list(list(X = X, model="BayesB", standardize = FALSE)),
+                                     verbose = FALSE, nIter = niter, burnIn = burn_in,
+                                     saveAt = out))
+  b   <- c(fit$ETA[[1]]$b * fit$ETA[[1]]$d)
+  return (list(fit = fit, mu = fit$mu, beta = b))
+}
+
+# Fit using coordinate descent algorithms for nonconvex penalized regression (ncvreg).
+# Different penalty functions can be used, particularly:
+#   1) smoothly clipped absolute deviation (SCAD) penalty
+#   2) minimax concave penalty (MCP)
+# The tuning parameter of MCP / SCAD penalty is gamma.
+# By default, gamma = 3.7 for SCAD and gamma = 3 for MCP.
+# If we do not want to select gamma, use gamma = switch(penalty, SCAD=3.7, 3)
+#
+fit_ncvreg <- function (X, y, penalty, nfolds = 10, gamma = seq(1, 5, length.out = 10)) {
+  cve.min <- Inf
+  # Iterate through all values of gamma to select the best fit
+  for (g in gamma) {
+    cvfit <- ncvreg::cv.ncvreg(X, y, penalty = penalty, gamma = g, nfolds = nfolds)
+    if (cve.min > min(cvfit$cve)) {
+      fit     <- cvfit
+      cve.min <- min(fit$cve)
+    }
+  }
+  b <- as.vector(coef(fit))
+  return (list(fit = fit, mu = b[1], beta = b[-1]))
+}
+
+
+fit_scad <- function (X, y, nfolds = 10, gamma = seq(2.1, 5.3, length.out = 11)) {
+  return (fit_ncvreg(X, y, "SCAD", nfolds = nfolds, gamma = gamma))
+}
+
+
+fit_mcp  <- function (X, y, nfolds = 10, gamma = seq(1.1, 4.9, length.out = 11)) {
+  return (fit_ncvreg(X, y, "MCP", nfolds = nfolds, gamma = gamma))
+}
+
+# Perform nfolds cross-validation on a L0 regression model 
+fit_l0learn <- function (X, y, nfolds = 10) {
+  cvfit      <- L0Learn::L0Learn.cvfit(X, y, nFolds = nfolds)
+  lambda.min <- cvfit$fit$lambda[[1]][which.min(cvfit$cvMeans[[1]])]
+  b          <- as.vector(coef(cvfit, lambda = lambda.min))
+  return (list(fit = cvfit$fit, mu = b[1], beta = b[-1]))
+}
+
 
 # Fit "Mr.ASH" to the provided data, X and y.
 # X should be an n x p numeric matrix, and y should be a vector of length p
@@ -131,29 +191,5 @@ fit_mr_ash <- function (X, y,
                                                 update.order = update_order,
                                                 tol = tol))
   return(list(fit = fit,mu = fit$intercept, beta = fit$beta))
-}
-
-fit_ncvreg <- function (X, y, penalty, nfolds = 10, gamma = seq(1, 5, length.out = 10)) {
-  cve.min <- Inf
-  # Iterate through all values of gamma to select the best fit
-  for (g in gamma) {
-    cvfit <- ncvreg::cv.ncvreg(X, y, penalty = penalty, gamma = g, nfolds = nfolds)
-    if (cve.min > min(cvfit$cve)) {
-      fit     <- cvfit
-      cve.min <- min(fit$cve)
-    }
-  }
-  b <- as.vector(coef(fit))
-  return (list(fit = fit, mu = b[1], beta = b[-1]))
-}
-
-
-fit_scad <- function (X, y, nfolds = 10, gamma = seq(2.1, 5.3, length.out = 11)) {
-  return (fit_ncvreg(X, y, "SCAD", nfolds = nfolds, gamma = gamma))
-}
-
-
-fit_mcp  <- function (X, y, nfolds = 10, gamma = seq(1.1, 4.9, length.out = 11)) {
-  return (fit_ncvreg(X, y, "MCP", nfolds = nfolds, gamma = gamma))
 }
 

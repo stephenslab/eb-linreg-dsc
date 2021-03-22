@@ -1,3 +1,3 @@
-# This R script implements the "SCAD" module.
+# This R script implements the "scad" module.
 out <- fit_scad(X, as.vector(y))
 

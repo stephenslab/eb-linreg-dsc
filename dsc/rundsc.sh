@@ -1,8 +1,21 @@
 #!/bin/bash
 
-#INPUT=${1}
-#PREV_OUTDIR="dsc_result"
-#if [ -d ${PREV_OUTDIR} ]; then rm -rf ${PREV_OUTDIR}; fi
-#rm -f ${PREV_OUTDIR}.html
-#python ~/Documents/work/dsc/main.py ${INPUT} -c 16
-python ~/Documents/work/dsc/main.py "$@"
+DSC_CMD="python /home/saikat/Documents/work/dsc/main.py"
+
+case $1 in
+    "append")
+        ${DSC_CMD} linreg.dsc --target all -c 16 -s existing
+        ;;
+    "trial-append")
+        ${DSC_CMD} linreg.dsc --target all --replicate 1 -c 16 -s existing -o trial
+        ;;
+    "trial-rerun")
+        rm -rf trial trial.html
+        ${DSC_CMD} linreg.dsc --target all --replicate 1 -c 16 -s None -o trial
+        ;;
+    *)
+        ${DSC_CMD} "$@"
+        ;;
+esac
+
+#python ~/Documents/work/dsc/main.py "$@" -c 16
