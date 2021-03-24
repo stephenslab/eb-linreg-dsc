@@ -120,9 +120,7 @@ def get_tickmarkers(xmin, xmax, kmin, kmax, spacing = 'linear'):
     assert kmin < kmax, "kmin must be at least one less than kmax"
     '''
     '''
-    _x = scale_list([xmin, xmax], scale = spacing)
-    _xmin = _x[0]
-    _xmax = _x[1]
+    _xmin, _xmax = scale_list([xmin, xmax], scale = spacing)
     _xrange = _xmax - _xmin
     
     '''
@@ -136,7 +134,8 @@ def get_tickmarkers(xmin, xmax, kmin, kmax, spacing = 'linear'):
     '''
     Find sanitized minimum value
     '''
-    tmin  = math.ceil(xmin / hopt) * hopt
+    tmin  = int(_xmin / hopt) * hopt
+    while tmin < _xmin: tmin += min(h, hopt)
     ticks = float_range(tmin, _xmax, hopt)
     ticks = [round(x, max(8, abs(spos))) for x in ticks]
     ticks_scaled = descale_list(ticks, scale = spacing)
@@ -156,16 +155,10 @@ spacing = scale of the labels
                 spacing = 'linear' would be 1, 2, 3, etc)
 '''
 def get_ticks(x0, x1, kmin, kmax, scale = 'linear', spacing = 'linear'):
-    assert scale in ['linear', 'log2', 'log10'], "This scale is not defined."
-    if scale == 'linear':
-        tmarks = get_tickmarkers(x0, x1, kmin, kmax, spacing = spacing)
-        tpos   = tmarks.copy()
-    elif scale == 'log10':
-        tmarks = get_tickmarkers(10**x0, 10**x1, kmin, kmax, spacing = spacing)
-        tpos   = [np.log10(x) for x in tmarks]
-    elif scale == 'log2':
-        tmarks = get_tickmarkers(2**x0, 2**x1, kmin, kmax, spacing = spacing)
-        tpos   = [np.log2(x) for x in tmarks]
+    # Tick marks should be descaled, while positions should be scaled.
+    xmin, xmax = descale_list([x0, x1], scale = scale)
+    tmarks     = get_tickmarkers(xmin, xmax, kmin, kmax, spacing = spacing)
+    tpos       = scale_list(tmarks, scale = scale)
     return tpos, tmarks
 
 
@@ -190,6 +183,13 @@ def set_xticks(ax, kmin = 2, kmax = 6, scale = 'linear', spacing = 'linear', tic
         tmarks = tickmarks.copy()
     ax.set_xticks(tpos)
     ax.set_xticklabels([f"{x}" for x in tmarks])
+    return
+
+
+def set_soft_ylim(ax, ymin, ymax, scale = 'linear'):
+    y0, y1 = ax.get_ylim()
+    y2, y3 = scale_list([ymin, ymax], scale)
+    ax.set_ylim([min(y0, y2), max(y1, y3)])
     return
 
 

@@ -158,8 +158,7 @@ def regression_methods():
                 )
     plotmeta['mr_ash'] = \
         PlotInfo(color     = "#C10020", # Vivid Red (kelly 5)
-                 #facecolor = "#C10020",
-                 facecolor = "None",
+                 facecolor = "#C10020",
                  label     = "Mr.Ash",
                  marker    = "o",
                  size      = 8,
@@ -169,8 +168,7 @@ def regression_methods():
                 )
     plotmeta['mr_ash_init'] = \
         PlotInfo(color     = "#C10020", # Vivid Red (kelly 5)
-                 #facecolor = "white",
-                 facecolor = "None",
+                 facecolor = "white",
                  label     = "Mr.Ash(init)",
                  marker    = "o",
                  size      = 8,

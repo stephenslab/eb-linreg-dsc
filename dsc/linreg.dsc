@@ -50,8 +50,8 @@ simparams:
 #                (if sequence, length must be equal to number of non-zero coefficients).
 # pve: proportion of variance explained (required for equicorrgauss.py)
 # snr: signal-to-noise ratio (required for changepoint.py)
-  dims:    R{list(c(n=500, p=200))}
-                  #c(n=200, p=200),
+  dims:    R{list(c(n=500, p=200),
+                  c(n=100, p=200))}
                   #c(n=200, p=100))}
   sfix:    None
   sfrac:   0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0

@@ -7,7 +7,10 @@ from matplotlib import cycler
 ## https://matplotlib.org/users/dflt_style_changes.html
 ## matplotlib.rcParams[] = 
 
-def banskt_presentation(black = '#333333', linewidth = 2, ticksize = 8, fontsize = 28, padding = 10, fontfamily = 'latex', colors = 'banskt', dpi = 300):
+def banskt_presentation(dpi = 300, linewidth = 2, ticksize = 8, 
+                        fontsize = 28, fontfamily = 'latex', 
+                        padding = 10, 
+                        black = '#333333', splinecolor = None, textcolor = None, colors = 'banskt'):
 
     if colors == 'banskt':
         mcolors = banskt_colors()
@@ -15,6 +18,10 @@ def banskt_presentation(black = '#333333', linewidth = 2, ticksize = 8, fontsize
         mcolors = kelly_colors()
     elif colors == 'wanwan':
         mcolors = wanwan_colors()
+
+
+    if textcolor is None:   textcolor = black
+    if splinecolor is None: splinecolor = black
 
     if fontfamily == 'latex':
         matplotlib.rcParams['text.latex.preamble'] = r'\usepackage[sfdefault,scaled=.85, lining]{FiraSans}' + \
@@ -36,12 +43,12 @@ def banskt_presentation(black = '#333333', linewidth = 2, ticksize = 8, fontsize
     
     # Fonts
     matplotlib.rcParams['font.size'] = fontsize
-    matplotlib.rcParams['text.color'] = black
+    matplotlib.rcParams['text.color'] = textcolor
     matplotlib.rcParams['axes.titlesize'] = fontsize * 1.2
     
     matplotlib.rcParams['axes.labelsize'] = fontsize
     matplotlib.rcParams['axes.labelweight'] = 'normal'
-    matplotlib.rcParams['axes.labelcolor'] = black
+    matplotlib.rcParams['axes.labelcolor'] = textcolor
     
     matplotlib.rcParams['xtick.labelsize'] = fontsize
     matplotlib.rcParams['ytick.labelsize'] = fontsize
@@ -49,14 +56,14 @@ def banskt_presentation(black = '#333333', linewidth = 2, ticksize = 8, fontsize
     
     # Axes
     #matplotlib.rcParams['axes.titlepad'] = 50
-    matplotlib.rcParams['axes.edgecolor'] = black
+    matplotlib.rcParams['axes.edgecolor'] = splinecolor
     matplotlib.rcParams['axes.facecolor'] = 'white'
     matplotlib.rcParams['axes.labelpad'] = 20
     matplotlib.rcParams['axes.linewidth'] = linewidth
     
     # Legend
     matplotlib.rcParams['legend.facecolor'] = 'inherit'
-    matplotlib.rcParams['legend.edgecolor'] = black
+    matplotlib.rcParams['legend.edgecolor'] = splinecolor
     matplotlib.rcParams['legend.frameon'] = False
     matplotlib.rcParams['legend.numpoints'] = 1
     matplotlib.rcParams['legend.scatterpoints'] = 1
@@ -90,8 +97,10 @@ def banskt_presentation(black = '#333333', linewidth = 2, ticksize = 8, fontsize
     matplotlib.rcParams['xtick.minor.width'] = linewidth
     matplotlib.rcParams['ytick.major.width'] = linewidth
     matplotlib.rcParams['ytick.minor.width'] = linewidth
-    matplotlib.rcParams['xtick.color'] = black
-    matplotlib.rcParams['ytick.color'] = black
+    matplotlib.rcParams['xtick.color'] = splinecolor
+    matplotlib.rcParams['ytick.color'] = splinecolor
+    #matplotlib.rcParams['xtick.labelcolor'] = textcolor
+    #matplotlib.rcParams['ytick.labelcolor'] = textcolor
 
     # Color cycle
     matplotlib.rcParams['axes.prop_cycle'] = cycler('color', mcolors)
@@ -101,7 +110,7 @@ def banskt_presentation(black = '#333333', linewidth = 2, ticksize = 8, fontsize
 
     # Patches
     # matplotlib.rcParams['patch.facecolor'] = mcolors[0] # doesn't have any effect, comes from prop_cycle
-    matplotlib.rcParams['patch.edgecolor'] = black
+    matplotlib.rcParams['patch.edgecolor'] = splinecolor
     matplotlib.rcParams['patch.linewidth'] = linewidth / 2
     matplotlib.rcParams['patch.force_edgecolor'] = True
     

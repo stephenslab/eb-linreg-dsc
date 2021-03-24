@@ -1,6 +1,7 @@
 #!/bin/bash
 
-DSC_CMD="python /home/saikat/Documents/work/dsc/main.py"
+#DSC_CMD="python /home/saikat/Documents/work/dsc/main.py"
+DSC_CMD="dsc"
 
 case $1 in
     "append")
@@ -11,11 +12,9 @@ case $1 in
         ;;
     "trial-rerun")
         rm -rf trial trial.html
-        ${DSC_CMD} linreg.dsc --target all --replicate 1 -c 16 -s None -o trial
+        ${DSC_CMD} linreg.dsc --target all --replicate 1 -c 16 -s none -o trial
         ;;
     *)
         ${DSC_CMD} "$@"
         ;;
 esac
-
-#python ~/Documents/work/dsc/main.py "$@" -c 16

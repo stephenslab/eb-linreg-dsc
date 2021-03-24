@@ -140,7 +140,7 @@ fit_ncvreg <- function (X, y, penalty, nfolds = 10, gamma = seq(1, 5, length.out
   cve.min <- Inf
   # Iterate through all values of gamma to select the best fit
   for (g in gamma) {
-    cvfit <- ncvreg::cv.ncvreg(X, y, penalty = penalty, gamma = g, nfolds = nfolds)
+    cvfit <- suppressWarnings(ncvreg::cv.ncvreg(X, y, penalty = penalty, gamma = g, nfolds = nfolds))
     if (cve.min > min(cvfit$cve)) {
       fit     <- cvfit
       cve.min <- min(fit$cve)
