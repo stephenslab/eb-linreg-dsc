@@ -130,7 +130,10 @@ def get_tickmarkers(xmin, xmax, kmin, kmax, spacing = 'linear'):
     '''
     spos = math.ceil(np.log10(_xrange)) - 1
     h = 10 ** spos
-    hopt = get_rational_intervals(_xrange, h, kmin, kmax)
+    if spacing == 'log10':
+        hopt = h
+    else:
+        hopt = get_rational_intervals(_xrange, h, kmin, kmax)
     '''
     Find sanitized minimum value
     '''
@@ -190,6 +193,13 @@ def set_soft_ylim(ax, ymin, ymax, scale = 'linear'):
     y0, y1 = ax.get_ylim()
     y2, y3 = scale_list([ymin, ymax], scale)
     ax.set_ylim([min(y0, y2), max(y1, y3)])
+    return
+
+
+def set_soft_xlim(ax, xmin, xmax, scale = 'linear'):
+    x0, x1 = ax.get_xlim()
+    x2, x3 = scale_list([xmin, xmax], scale)
+    ax.set_xlim([min(x0, x2), max(x1, x3)])
     return
 
 
