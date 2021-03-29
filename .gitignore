@@ -6,4 +6,5 @@ __pycache__
 dsc/dsc_result.html
 dsc/dsc_result
 dsc/trial
-dsc/trial.html
+dsc/trial*
+dev/

@@ -11,7 +11,7 @@ class PlotInfo(collections.namedtuple('_PLOT_FIELDS',
 '''
 PlotInfo for all penalized regression methods
 '''
-def regression_methods():
+def plot_metainfo():
     plotmeta = dict()
     plotmeta['ridge'] = \
         PlotInfo(color     = "#817066", # Medium Gray (kelly 7)
@@ -175,6 +175,36 @@ def regression_methods():
                  linewidth = 2,
                  linestyle = "solid",
                  zorder    = 200,
+                )
+    plotmeta['em_vamp'] = \
+        PlotInfo(color     = "#000000", # Black
+                 facecolor = "#000000",
+                 label     = "EM-VAMP",
+                 marker    = "o",
+                 size      = 8,
+                 linewidth = 2,
+                 linestyle = "solid",
+                 zorder    = 30,
+                )
+    plotmeta['ebmr_lasso'] = \
+        PlotInfo(color     = "#000000", # Black
+                 facecolor = "#000000",
+                 label     = "EBMR (DExp)",
+                 marker    = "o",
+                 size      = 8,
+                 linewidth = 2,
+                 linestyle = "solid",
+                 zorder    = 30,
+                )
+    plotmeta['ebmr_ash'] = \
+        PlotInfo(color     = "#000000", # Black
+                 facecolor = "#000000",
+                 label     = "EBMR (ash)",
+                 marker    = "s",
+                 size      = 8,
+                 linewidth = 2,
+                 linestyle = "solid",
+                 zorder    = 30,
                 )
     
     return plotmeta

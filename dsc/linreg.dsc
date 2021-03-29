@@ -26,7 +26,9 @@ DSC:
     fit:       ridge, lasso, elastic_net,
                lasso_1se, elastic_net_1se, scad, mcp, l0learn,
                susie, varbvs, varbvsmix, blasso, bayesb,
-               mr_ash, mr_ash_init
+               mr_ash, mr_ash_init,
+               em_vamp,
+               ebmr_ash, ebmr_lasso
     predict:   predict_linear
     score:     mse, mae
   run: 
@@ -87,59 +89,69 @@ changepoint(simparams):   changepoint.py
 # All fit modules must have these inputs and outputs
 # Extra inputs and outputs can be specified in 
 # respective submodules.
-fitparams:
+fitR:
   X:          $X
   y:          $y
   $intercept: out$mu
   $beta_est:  out$beta
-  $model:     out 
+  $model:     out
+fitpy:
+  X:          $X
+  y:          $y
+  $intercept: mu
+  $beta_est:  beta
+  $model:     model
 
 # Fit a ridge regression model using glmnet. The penalty strength
 # (i.e., the normal prior on the coefficients) is estimated using
 # cross-validation.
-ridge (fitparams):           ridge.R
+ridge (fitR):           ridge.R
   
 # Fit a Lasso model using glmnet. The penalty strength ("lambda") is
 # estimated via cross-validation.
-lasso (fitparams):           lasso.R
-lasso_1se (fitparams):       lasso_1se.R
+lasso (fitR):           lasso.R
+lasso_1se (fitR):       lasso_1se.R
 
 # Fit an Elastic Net model using glmnet. The model parameters, lambda
 # and alpha, are estimated using cross-validation.
-elastic_net (fitparams):     elastic_net.R
-elastic_net_1se (fitparams): elastic_net_1se.R
+elastic_net (fitR):     elastic_net.R
+elastic_net_1se (fitR): elastic_net_1se.R
+
+# EM-VAMP, see Fletcher, Schniter (2017) IEEE Xplore
+em_vamp (fitpy):        em_vamp.py
+  $converged:    converged
 
 # Fit a "sum of single effects" (SuSiE) regression model.
-susie (fitparams):           susie.R
+susie (fitR):           susie.R
 
 # Compute a fully-factorized variational approximation for Bayesian
 # variable selection in linear regression (varbvs).
-varbvs (fitparams):          varbvs.R
+varbvs (fitR):          varbvs.R
 
 # This is a variant on the varbvs method in which the "spike-and-slab"
 # prior on the regression coefficients is replaced with a
 # mixture-of-normals prior.
-varbvsmix (fitparams):       varbvsmix.R
+varbvsmix (fitR):       varbvsmix.R
 
 
 # Fit using SCAD and MCP penalties
-scad (fitparams):            scad.R
-mcp (fitparams):             mcp.R
+scad (fitR):            scad.R
+mcp (fitR):             mcp.R
 
 # Fit L0Learn
-l0learn (fitparams):         l0learn.R
+l0learn (fitR):         l0learn.R
 
 # Fit Bayesian Lasso
-blasso (fitparams):          blasso.R
+blasso (fitR):          blasso.R
 
 # Fit BayesB
-bayesb (fitparams):          bayesb.R
+bayesb (fitR):          bayesb.R
 
 
 # Fit Mr.ASH
 # This is an abstract base class, which contains all default values.
 # Several variations of Mr.ASH use this abstract base class (see below).
-mr_ash_base (fitparams):     mr_ash.R
+mr_ash_base (fitR):     mr_ash.R
   grid:          NULL
   init_pi:       NULL
   init_beta:     NULL
@@ -169,6 +181,14 @@ mr_ash_init (mr_ash_base):
   init_sigma2:   se^2
   init_pi:       c(1 - s/p, s/p)
   update_pi:     FALSE
+
+
+# EBMR methods
+# Point mixture prior equivalent to Mr.ASH
+ebmr_ash (fitpy):       ebmr_ash.py
+
+# Double exponential prior equivalent to LASSO
+ebmr_lasso (fitpy):     ebmr_lasso.py
 
 
 # predict modules
