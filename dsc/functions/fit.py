@@ -2,32 +2,86 @@
 import numpy as np
 import vampyre
 from ebmrPy.inference.ebmr import EBMR
+from ebmrPy.inference.iridge import IRidge
 import collections
 
 
 def fit_ebmr_base(X, y, prior = 'point', grr = 'mle', 
              grid = np.array([0.001, 1.0, 2.0, 3.0, 4.0]), 
              ignore_convergence = True):
-    n, p = X.shape
-    ymean = np.mean(y)
-    Xnew  = np.concatenate((np.ones((n, 1)),  X), axis = 1)
-    ynew  = y - ymean
-    ebmr  = EBMR(Xnew, ynew, prior = prior, grr = grr,
-                 sigma = 'full', inverse = 'direct',
-                 s2_init = 1.0, sb2_init = 1.0,
-                 max_iter = 100, tol = 1e-8,
-                 mll_calc = False,
-                 mix_point_w = grid,
-                 ignore_convergence = True
-                )
+    # EBMR does not add intercept
+    # Hence, adding an extra column of 1 to X
+    Xc, yc, y0 = add_intercept_column(X, y)
+    ebmr       = EBMR(Xc, yc, prior = prior, grr = grr,
+                      sigma = 'full', inverse = 'direct',
+                      s2_init = 1.0, sb2_init = 1.0,
+                      max_iter = 100, tol = 1e-8,
+                      mll_calc = False,
+                      mix_point_w = grid,
+                      ignore_convergence = True
+                     )
     ebmr.update()
-    intercept = ebmr.mu[0] + ymean
-    beta = ebmr.mu[1:]
-    ebmr_info = ['s2', 'sb2', 'sigma', 'mu', 'Wbar', 'Wbarinv', 'elbo', 'mll_path', 'elbo_path', 'n_iter', 'mixcoef']
-    model = dict()
-    for info in ebmr_info:
-        model[info] = getattr(ebmr, info)
+    intercept  = ebmr.mu[0] + y0
+    beta       = ebmr.mu[1:]
+    # Convert the Python class to dictionary
+    model = class_to_dict(ebmr, 
+        ['s2', 'sb2', 'sigma', 'mu', 'Wbar', 'Wbarinv', 
+         'elbo', 'mll_path', 'elbo_path', 'n_iter', 'mixcoef'])
     return model, intercept, beta
+
+
+def fit_iridge(X, y, max_iter = 1000):
+    Xc, yc, y0 = add_intercept_column(X, y)
+    iridge     = IRidge(Xc, yc, max_iter = max_iter)
+    iridge.update()
+    intercept  = iridge.beta[0] + y0
+    beta       = iridge.beta[1:]
+    # Convert the Python class to dictionary
+    model  = class_to_dict(iridge, 
+        ['s2', 'sb2', 'sw2', 'beta', 'mll_path', 'n_iter'])
+    return model, intercept, beta
+
+
+def fit_em_vamp(X, y, max_iter = 100,
+            probc = None, meanc = None, varc = None, 
+            try_fixed_wvar = False):
+
+    n, p        = X.shape
+    # For intercept, add a column of 1s to X
+    # redundant because I am also subtracting the mean of y
+    Xc, yc, y0  = add_intercept_column(X, y)
+
+    # Initial sigma2 is set to the variance of y (mean centered).
+    sigma2_init = np.mean(yc**2)
+
+    # Initial probc, meanc, varc
+    probc, meanc, varc = vamp_initialize(Xc, probc, meanc, varc, sigma2_init)
+
+    # Get the estimation history
+    has_converged = True
+    bhat_hist = vamp_solver(Xc, yc, probc, meanc, varc, sigma2_init, max_iter)
+
+    # Tune off the wvar if estimation has not converged
+    if try_fixed_wvar:
+        # These are some random hacks to check if 
+        # optimization has converged.
+        bopt = bhat_hist[-1]
+        if np.isnan(bopt.reshape(-1)).any():
+            has_converged = False
+        else:
+            ypred = np.dot(Xc, bopt) + y0
+            if np.sqrt(np.mean((y - ypred)**2)) >= 1e3:
+                has_converged = False
+        # The above checks does not gurantee convergence
+        # but still they might indicate that the gradient descent 
+        # has not converged.
+        if not has_converged:
+            bhat_hist = vamp_solver(Xc, yc, probc, meanc, varc, sigma2_init, max_iter, tune_wvar = False)
+
+    for bhat in bhat_hist:
+        bhat[0] += y0
+    bopt = bhat_hist[-1].reshape(-1)
+    return bhat_hist, bopt[0], bopt[1:], has_converged
 
 
 def vamp_solver(X, y, probc, meanc, varc, sigma2_init, max_iter, tune_wvar = True):
@@ -87,50 +141,21 @@ def vamp_initialize(X, probc, meanc, varc, sigma2_init):
     #print (meanc)
     #print (varc)
     return probc, meanc, varc
-    
+
+# This is a placeholder until I find a proper
+# dict converter of the class.
+# [(p, type(getattr(classname, p))) for p in dir(classname)]
+# shows the types, but how to extract the @property methods?
+def class_to_dict(classname, property_list):
+    model = dict()
+    for info in property_list:
+        model[info] = getattr(classname, info)
+    return model
 
 
-def fit_em_vamp(X, y, max_iter = 100,
-            probc = None, meanc = None, varc = None, 
-            use_intercept = True, try_fixed_wvar = False):
-
-    n, p        = X.shape
-    ymean       = np.mean(y)
-
-    # For intercept, add a column of 1s to X
-    # redundant because I am also subtracting the mean of y
-    if use_intercept:
-        Xnew = np.concatenate((np.ones((n, 1)),  X), axis = 1)
-        ynew = (y - ymean).reshape(-1, 1)
-    else:
-        Xnew = np.concatenate((np.zeros((n, 1)), X), axis = 1)
-        ynew = y.reshape(-1, 1)
-
-    # Initial sigma2 is set to the variance of y (mean centered).
-    sigma2_init = np.mean(ynew**2)
-
-    # Initial probc, meanc, varc
-    probc, meanc, varc = vamp_initialize(Xnew, probc, meanc, varc, sigma2_init)
-
-    # Get the estimation history
-    has_converged = True
-    bhat_hist = vamp_solver(Xnew, ynew, probc, meanc, varc, sigma2_init, max_iter)
-
-    # Tune off the wvar if estimation has not converged
-    # These are some random hacks to check if 
-    # optimization has converged.
-    if try_fixed_wvar:
-        if np.isnan(bhat_hist[-1].reshape(-1)).any():
-            has_converged = False
-        else:
-            ypred = np.dot(Xnew, bhat_hist[-1]) + ymean
-            if np.sqrt(np.mean((y - ypred)**2)) >= 1e3:
-                has_converged = False
-        if not has_converged:
-            bhat_hist = vamp_solver(Xnew, ynew, probc, meanc, varc, sigma2_init, max_iter, tune_wvar = False)
-
-    if use_intercept:
-        for bhat in bhat_hist:
-            bhat[0] += ymean
-    bopt = bhat_hist[-1].reshape(-1)
-    return bhat_hist, bopt[0], bopt[1:], has_converged
+def add_intercept_column(X, y):
+    n, p  = X.shape
+    ymean = np.mean(y)
+    Xnew  = np.concatenate((np.ones((n, 1)),  X), axis = 1)
+    ynew  = y - ymean
+    return Xnew, ynew, ymean

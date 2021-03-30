@@ -28,7 +28,8 @@ DSC:
                susie, varbvs, varbvsmix, blasso, bayesb,
                mr_ash, mr_ash_init,
                em_vamp,
-               ebmr_ash, ebmr_lasso
+               ebmr_ash, ebmr_lasso,
+               em_iridge
     predict:   predict_linear
     score:     mse, mae
   run: 
@@ -189,6 +190,9 @@ ebmr_ash (fitpy):       ebmr_ash.py
 
 # Double exponential prior equivalent to LASSO
 ebmr_lasso (fitpy):     ebmr_lasso.py
+
+# EM-IRidge with product of normals
+em_iridge (fitpy):      em_iridge.py
 
 
 # predict modules

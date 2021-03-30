@@ -12,7 +12,7 @@ import methodprops
 
 mpl_stylesheet.banskt_presentation()
 
-def single_plot_score_methods(ax, resdf, colname, methods, pve, rho, dims, sfracs):
+def single_plot_score_methods(ax, resdf, colname, methods, pve, rho, dims, sfracs, use_median = False):
     xvals  = [max(1, int(x * dims[1])) for x in sfracs]
     xscale = 'log10'
     yscale = 'log10'
@@ -24,7 +24,11 @@ def single_plot_score_methods(ax, resdf, colname, methods, pve, rho, dims, sfrac
         for i, sfrac in enumerate(sfracs):
             sfrac_condition = f"$(simulate.sfrac) == {sfrac}"
             dfselect = pd_utils.select_dfrows(resdf, mconditions + [sfrac_condition])
-            score[i] = np.mean(dfselect[colname].to_numpy())
+            scores   = dfselect[colname].to_numpy()
+            if use_median:
+                score[i] = np.median(scores[~np.isnan(scores)])
+            else:
+                score[i] = np.mean(scores[~np.isnan(scores)])
 
         # Plot xvals vs score
         pm = methodprops.plot_metainfo()[method]
@@ -87,7 +91,7 @@ def single_plot_computational_time(ax, data, colname, whichmethods, pve, rho, di
     return
 
 
-def create_figure_prediction_error(whichmethods, data, dims, rho_list, pve_list, sfracs):
+def create_figure_prediction_error(whichmethods, data, dims, rho_list, pve_list, sfracs, use_median = False):
     
     # Define main settings
     leg_hprop = 0.4
@@ -118,7 +122,7 @@ def create_figure_prediction_error(whichmethods, data, dims, rho_list, pve_list,
             ax = fig.add_subplot(gs[i + 1, j])
 
             # Plot for this pve and rho
-            single_plot_score_methods(ax, data, 'score1', whichmethods, pve, rho, dims, sfracs)
+            single_plot_score_methods(ax, data, 'score1', whichmethods, pve, rho, dims, sfracs, use_median = use_median)
             ax.tick_params(labelcolor = "#333333")
 
             # Subplot title

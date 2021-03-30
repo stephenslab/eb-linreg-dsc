@@ -178,7 +178,7 @@ def plot_metainfo():
                 )
     plotmeta['em_vamp'] = \
         PlotInfo(color     = "#000000", # Black
-                 facecolor = "#000000",
+                 facecolor = "None",
                  label     = "EM-VAMP",
                  marker    = "o",
                  size      = 8,
@@ -186,21 +186,31 @@ def plot_metainfo():
                  linestyle = "solid",
                  zorder    = 30,
                 )
+    plotmeta['em_iridge'] = \
+        PlotInfo(color     = "#93AA00", # Vivid Yellowish Green
+                 facecolor = "#93AA00",
+                 label     = "IRidge (EM)",
+                 marker    = "D",
+                 size      = 8,
+                 linewidth = 2,
+                 linestyle = "solid",
+                 zorder    = 30,
+                )
     plotmeta['ebmr_lasso'] = \
-        PlotInfo(color     = "#000000", # Black
-                 facecolor = "#000000",
+        PlotInfo(color     = "#3A6200", # Dark Green
+                 facecolor = "None",
                  label     = "EBMR (DExp)",
-                 marker    = "o",
+                 marker    = "v",
                  size      = 8,
                  linewidth = 2,
                  linestyle = "solid",
                  zorder    = 30,
                 )
     plotmeta['ebmr_ash'] = \
-        PlotInfo(color     = "#000000", # Black
-                 facecolor = "#000000",
+        PlotInfo(color     = "#6DB802", # Light Green
+                 facecolor = "#6DB802",
                  label     = "EBMR (ash)",
-                 marker    = "s",
+                 marker    = "<",
                  size      = 8,
                  linewidth = 2,
                  linestyle = "solid",
