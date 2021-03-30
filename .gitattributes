@@ -1,2 +1,2 @@
-
 *.dsc linguist-language=YAML
+*.ipynb linguist-vendored
