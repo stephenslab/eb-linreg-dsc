@@ -43,8 +43,8 @@ def fit_iridge(X, y, max_iter = 1000):
 
 
 def fit_em_vamp(X, y, max_iter = 100,
-            probc = None, meanc = None, varc = None, 
-            try_fixed_wvar = False):
+            probc = None, meanc = None, varc = None,
+            mean_fix = None, var_fix = None):
 
     n, p        = X.shape
     # For intercept, add a column of 1s to X
@@ -58,58 +58,61 @@ def fit_em_vamp(X, y, max_iter = 100,
     probc, meanc, varc = vamp_initialize(Xc, probc, meanc, varc, sigma2_init)
 
     # Get the estimation history
-    has_converged = True
-    bhat_hist = vamp_solver(Xc, yc, probc, meanc, varc, sigma2_init, max_iter)
+    # has_converged = True
+    solver = vamp_solver(Xc, yc.reshape(-1, 1), probc, meanc, varc, sigma2_init, max_iter, 
+                         mean_fix = mean_fix, var_fix = var_fix)
+    bhat_hist = solver.hist_dict['zhat']
 
-    # Tune off the wvar if estimation has not converged
-    if try_fixed_wvar:
-        # These are some random hacks to check if 
-        # optimization has converged.
-        bopt = bhat_hist[-1]
-        if np.isnan(bopt.reshape(-1)).any():
-            has_converged = False
-        else:
-            ypred = np.dot(Xc, bopt) + y0
-            if np.sqrt(np.mean((y - ypred)**2)) >= 1e3:
-                has_converged = False
-        # The above checks does not gurantee convergence
-        # but still they might indicate that the gradient descent 
-        # has not converged.
-        if not has_converged:
-            bhat_hist = vamp_solver(Xc, yc, probc, meanc, varc, sigma2_init, max_iter, tune_wvar = False)
+    ## # Tune off the wvar if estimation has not converged
+    ## if try_fixed_wvar:
+    ##     # These are some random hacks to check if 
+    ##     # optimization has converged.
+    ##     bopt = bhat_hist[-1]
+    ##     if np.isnan(bopt.reshape(-1)).any():
+    ##         has_converged = False
+    ##     else:
+    ##         ypred = np.dot(Xc, bopt) + y0
+    ##         if np.sqrt(np.mean((y - ypred)**2)) >= 1e3:
+    ##             has_converged = False
+    ##     # The above checks does not gurantee convergence
+    ##     # but still they might indicate that the gradient descent 
+    ##     # has not converged.
+    ##     if not has_converged:
+    ##         bhat_hist = vamp_solver(Xc, yc, probc, meanc, varc, sigma2_init, max_iter, tune_wvar = False)
 
     for bhat in bhat_hist:
         bhat[0] += y0
     bopt = bhat_hist[-1].reshape(-1)
-    return bhat_hist, bopt[0], bopt[1:], has_converged
+    return bhat_hist, bopt[0], bopt[1:]
 
 
-def vamp_solver(X, y, probc, meanc, varc, sigma2_init, max_iter, tune_wvar = True):
+def vamp_solver(X, y, probc, meanc, varc, sigma2_init, max_iter, 
+                tune_wvar = True, tune_gmm = True, mean_fix = None, var_fix = None):
     n, p        = X.shape
     bshape      = (p, 1)
     Xop         = vampyre.trans.MatrixLT(X, bshape)
     # flag indicating if the estimator uses MAP estimation (else use MMSE).
-    map_est = False
+    map_est     = False
     # Use Gaussian mixture estimator class with auto-tuning
     # Enables EM tuning of the GMM parameters.
     # In this case, probc, meanc and varc are used as initial estimates
     # zvarmin - minimum variance in each cluster
-    est_in_em = vampyre.estim.GMMEst(shape = bshape,
-                                     zvarmin = 1e-6, tune_gmm = True,
-                                     probc = probc, meanc = meanc, varc = varc,
-                                     name = 'GMM input')
+    est_in_em   = vampyre.estim.GMMEst(shape = bshape,
+                                       zvarmin = 1e-6, tune_gmm = True,
+                                       probc = probc, meanc = meanc, varc = varc,
+                                       name = 'GMM input', mean_fix = mean_fix, var_fix = var_fix)
 
-    est_out_em = vampyre.estim.LinEst(Xop, y, wvar = sigma2_init,
-                                      map_est = map_est, tune_wvar = tune_wvar,
-                                      name = 'Linear+AWGN')
+    est_out_em  = vampyre.estim.LinEst(Xop, y, wvar = sigma2_init,
+                                       map_est = map_est, tune_wvar = tune_wvar,
+                                       name = 'Linear+AWGN')
     # Create the message handler
-    msg_hdl = vampyre.estim.MsgHdlSimp(map_est = map_est, shape = bshape)
+    msg_hdl     = vampyre.estim.MsgHdlSimp(map_est = map_est, shape = bshape)
     # Create the solver
-    solver = vampyre.solver.Vamp(est_in_em, est_out_em, msg_hdl, hist_list=['zhat'],
-                                 nit = max_iter, prt_period = 0)
+    solver      = vampyre.solver.Vamp(est_in_em, est_out_em, msg_hdl, hist_list=['zhat'],
+                                      nit = max_iter, prt_period = 0)
     # Run the solver
     solver.solve()
-    return solver.hist_dict['zhat']
+    return solver
 
 
 # Some ad-hoc initialization of the Gaussian Mixture Model (GMM)
@@ -123,16 +126,16 @@ def vamp_initialize(X, probc, meanc, varc, sigma2_init):
     else:
         ncomp = 2
     # Proportion of each component
-    if not (probc):
+    if probc is None:
         prob_hi   = np.minimum(n / p / 2, 0.95)
         probc     = np.zeros(ncomp)
         probc[1:] = np.repeat(prob_hi / (ncomp - 1), (ncomp - 1))
         probc[0]  = 1 - np.sum(probc[1:])
     # Mean of each component
-    if not (meanc):
+    if meanc is None:
         meanc     = np.zeros(ncomp)
     # Variance of each component
-    if not (varc):
+    if varc is None:
         var_hi    = sigma2_init / (np.mean(np.abs(X)**2) * p * np.sum(probc[1:]))
         var_hi    = max(var_hi, 0.1)
         varc      = var_hi * np.arange(ncomp) / (ncomp - 1)

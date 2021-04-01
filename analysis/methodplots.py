@@ -42,7 +42,7 @@ def single_plot_score_methods(ax, resdf, colname, methods, pve, rho, dims, sfrac
 
     mpl_utils.set_soft_ylim(ax, 1.0, 1.2, scale = yscale)
     mpl_utils.set_xticks(ax, scale = xscale, tickmarks = xvals)
-    mpl_utils.set_yticks(ax, scale = yscale, kmin = 3, kmax = 4)
+    mpl_utils.set_yticks(ax, scale = yscale, kmin = 3, kmax = 4, forceticks = [1.0])
     mpl_utils.decorate_axes(ax, hide = ["top", "right"], ticklimits = True)
     return
 

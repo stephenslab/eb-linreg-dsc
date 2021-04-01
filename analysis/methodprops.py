@@ -186,6 +186,16 @@ def plot_metainfo():
                  linestyle = "solid",
                  zorder    = 30,
                 )
+    plotmeta['em_vamp_ash'] = \
+        PlotInfo(color     = "#000000", # Black
+                 facecolor = "None",
+                 label     = "EM-VAMP (ash)",
+                 marker    = "*",
+                 size      = 12,
+                 linewidth = 2,
+                 linestyle = "solid",
+                 zorder    = 30,
+                )
     plotmeta['em_iridge'] = \
         PlotInfo(color     = "#93AA00", # Vivid Yellowish Green
                  facecolor = "#93AA00",

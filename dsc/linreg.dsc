@@ -27,7 +27,7 @@ DSC:
                lasso_1se, elastic_net_1se, scad, mcp, l0learn,
                susie, varbvs, varbvsmix, blasso, bayesb,
                mr_ash, mr_ash_init,
-               em_vamp,
+               em_vamp, em_vamp_ash,
                ebmr_ash, ebmr_lasso,
                em_iridge
     predict:   predict_linear
@@ -120,7 +120,9 @@ elastic_net_1se (fitR): elastic_net_1se.R
 
 # EM-VAMP, see Fletcher, Schniter (2017) IEEE Xplore
 em_vamp (fitpy):        em_vamp.py
-  $converged:    converged
+
+# EM-VAMP with adaptive shrinkage (ash) prior
+em_vamp_ash (fitpy):    em_vamp_ash.py
 
 # Fit a "sum of single effects" (SuSiE) regression model.
 susie (fitR):           susie.R
