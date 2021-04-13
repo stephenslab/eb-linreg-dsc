@@ -3,8 +3,8 @@ __pycache__
 .Rhistory
 *.swp
 **/.dsc
-dsc/dsc_result.html
 dsc/dsc_result
+dsc/dsc_result*
 dsc/trial
 dsc/trial*
 dev/

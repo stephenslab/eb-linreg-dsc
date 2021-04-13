@@ -1,6 +1,5 @@
 #
 import simulate
-import dsc_io
 
-n, p, s = dsc_io.read_sim_input_params (dims, sfrac = sfrac, sfix = sfix)
-X, y, Xtest, ytest, beta, sigma = simulate.changepoint_predictors (n, p, s, snr, signal = signal, seed = None, bfix = bfix)
+n, p, s = simulate.parse_input_params (dims, sfix = sfix)
+X, y, Xtest, ytest, beta, sigma = simulate.changepoint_predictors (n, p, s, snr, k = basis_k, signal = signal, seed = None, bfix = bfix, center_sticky = True)

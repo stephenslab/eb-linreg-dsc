@@ -2,17 +2,36 @@
 
 #DSC_CMD="python /home/saikat/Documents/work/dsc/main.py"
 DSC_CMD="dsc"
+TARGET=${2:-all}
+
+trial_outdir() {
+    TARGET="${1}"
+    case ${TARGET} in
+        "all")
+            OUTDIR="trial"
+            ;;
+        "cpt")
+            OUTDIR="trial_changepoint"
+            ;;
+        *)
+            OUTDIR="trial"
+            ;;
+    esac
+    echo ${OUTDIR}
+}
 
 case $1 in
     "append")
-        ${DSC_CMD} linreg.dsc --target all -c 16 -s existing
+        echo ${DSC_CMD} linreg.dsc --target ${TARGET} -c 16 -s existing
         ;;
     "trial-append")
-        ${DSC_CMD} linreg.dsc --target all --replicate 1 -c 16 -s existing -o trial
+        OUTDIR=$(trial_outdir ${TARGET})
+        ${DSC_CMD} linreg.dsc --target ${TARGET} --replicate 1 -c 16 -s existing -o ${OUTDIR}
         ;;
     "trial-rerun")
-        rm -rf trial trial.html
-        ${DSC_CMD} linreg.dsc --target all --replicate 1 -c 16 -s none -o trial
+        OUTDIR=$(trial_outdir ${TARGET})
+        rm -rf ${OUTDIR} ${OUTDIR}.html
+        ${DSC_CMD} linreg.dsc --target ${TARGET} --replicate 1 -c 16 -s none -o trial -o ${OUTDIR}
         ;;
     *)
         ${DSC_CMD} "$@"

@@ -19,7 +19,7 @@ DSC:
              modules/fit,
              modules/predict,
              modules/score
-  output: dsc_result
+  output: dsc_result_changepoint
   replicate: 20
   define:
     simulate:  indepgauss, equicorrgauss
@@ -30,10 +30,16 @@ DSC:
                em_vamp, em_vamp_ash,
                ebmr_ash, ebmr_lasso,
                em_iridge
+    fit_cpt:   ridge, lasso, elastic_net,
+               susie, varbvs, mr_ash, mr_ash_init,
+               em_vamp, em_vamp_ash,
+               ebmr_ash, ebmr_lasso,
+               em_iridge
     predict:   predict_linear
     score:     mse, mae
   run: 
     all:       simulate * fit * predict * score
+    cpt:       changepoint * fit_cpt * predict * score
 
 
 # simulate modules
@@ -57,8 +63,8 @@ simparams:
                   c(n=100, p=200))}
                   #c(n=200, p=100))}
   sfix:    None
-  sfrac:   0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0
   bfix:    None
+  basis_k: None
   signal:  "normal"
   $X:      X
   $y:      y
@@ -71,18 +77,22 @@ simparams:
   $se:     sigma
 
 equicorrgauss(simparams): equicorrgauss.py
-  rho:     0.95
+  sfrac:   0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0
   pve:     0.5, 0.95
+  rho:     0.95
 
 indepgauss(simparams):    equicorrgauss.py
-  rho:     0.0
+  sfrac:   0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0
   pve:     0.5, 0.95
+  rho:     0.0
 
 changepoint(simparams):   changepoint.py
-  snr:     10
-  sfix:    1
-  signal:  "fixed"
-  bfix:    8
+  dims:    R{list(c(n=200, p=500))}
+  snr:     20
+  sfix:    1, 2, 4, 6, 8, 10, 15, 20
+  basis_k: 0, 1, 2
+  #signal:  "fixed"
+  #bfix:    8
 
 
 # fit modules

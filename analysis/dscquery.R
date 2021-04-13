@@ -22,6 +22,8 @@ options = list(
   make_option(c("-m", "--cmarker"), type="character", default = "##",
               help="placeholder marker for the $ sign required for conditions", 
               metavar="character"),
+  make_option(c("-g", "--groups"), type="character", default = NULL,
+              help="list of dsc-query groups", metavar="character"),
   make_option(c("-r", "--rdsfile"), type="character", default = NULL,
               help="name of output RDS file", metavar="character")
 )
@@ -35,10 +37,19 @@ if (!is.null(opt$conditions)) {
 } else {
   conditions = NULL
 }
+print(opt$groups)
+if (!is.null(opt$groups)) {
+  groups = get_input_modules(opt$groups, opt$separator, opt$cmarker)
+} else {
+  groups = NULL
+}
+
+
 
 dscout <- dscquery(dsc.outdir = opt$outdir,
                    targets = c(targets),
                    conditions = conditions,
+                   groups = groups,
                    verbose = TRUE)
 saveRDS(dscout, file = opt$rdsfile)
 
