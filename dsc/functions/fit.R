@@ -193,3 +193,11 @@ fit_mr_ash <- function (X, y,
   return(list(fit = fit,mu = fit$intercept, beta = fit$beta))
 }
 
+# Fit EBMR with mixture of exponentials prior
+fit_ebmr_ash <- function (X, y, max_iter = 200) {
+  fit_ebr <- ebmr.alpha::ebmr(X, y, maxiter = max_iter, ebnv_fn = ebmr.alpha::ebnv.pm)
+  fit_eblasso <- ebmr.alpha::ebmr.update(fit_ebr, maxiter = max_iter, ebnv_fn = ebmr.alpha::ebnv.exp)
+  eblash_init <- ebmr.alpha::ebmr.set.prior(fit_eblasso, ebmr.alpha:::exp2np(fit_eblasso$g))
+  ebmr_ash  <- suppressWarnings(ebmr.alpha::ebmr.update(eblash_init, maxiter = max_iter, ebnv_fn = ebmr.alpha::ebnv.exp_mix.em))
+  return (list(fit = ebmr_ash, mu=0, beta = coef(ebmr_ash)))
+}

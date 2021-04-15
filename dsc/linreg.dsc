@@ -10,6 +10,7 @@ DSC:
              susieR, 
              varbvs >= 2.6-3,
              mr.ash.alpha,
+             ebmr.alpha,
              L0Learn,
              BGLR,
              ncvreg
@@ -33,7 +34,7 @@ DSC:
     fit_cpt:   ridge, lasso, elastic_net,
                susie, varbvs, mr_ash, mr_ash_init,
                em_vamp, em_vamp_ash,
-               ebmr_ash, ebmr_lasso,
+               ebmr_ash, ebmr_lasso, ebmr_ashR,
                em_iridge
     predict:   predict_linear
     score:     mse, mae
@@ -91,6 +92,7 @@ changepoint(simparams):   changepoint.py
   snr:     20
   sfix:    1, 2, 4, 6, 8, 10, 15, 20
   basis_k: 0, 1, 2
+  signal:  "gamma"
   #signal:  "fixed"
   #bfix:    8
 
@@ -199,6 +201,7 @@ mr_ash_init (mr_ash_base):
 # EBMR methods
 # Point mixture prior equivalent to Mr.ASH
 ebmr_ash (fitpy):       ebmr_ash.py
+ebmr_ashR (fitR):       ebmr_ash.R
 
 # Double exponential prior equivalent to LASSO
 ebmr_lasso (fitpy):     ebmr_lasso.py

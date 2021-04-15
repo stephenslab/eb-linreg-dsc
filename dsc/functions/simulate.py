@@ -15,6 +15,10 @@ def sample_betas (p, bidx, method="normal", bfix=None):
     beta = np.zeros(p)
     s = bidx.shape[0]
 
+    # helper function to obtain random sign (+1, -1) with equal proportion (f = 0.5)
+    def sample_sign(n, f = 0.5):
+        return np.random.choice([-1, 1], size=n, p=[f, 1 - f])
+
     # sample beta from Gaussian(mean = 0, sd = 1)
     if method == "normal":
         beta[bidx] = np.random.normal(size = s)
@@ -27,6 +31,12 @@ def sample_betas (p, bidx, method="normal", bfix=None):
             beta[bidx] = bfix
         else:
             beta[bidx] = np.repeat(bfix, s)
+
+    # sample beta from a Gamma(40, 0.1) distribution and assign random sign
+    elif method == "gamma":
+        params = [40, 0.1]
+        beta[bidx] = np.random.gamma(params[0], params[1], size = s)
+        beta[bidx] = np.multiply(beta[bidx], sample_sign(s))
 
     return beta
 
@@ -80,12 +90,13 @@ def changepoint_predictors (n, p, s, snr, k = 0, signal = "normal", seed = None,
     else:
         bidx  = np.random.choice(np.arange(imin, imax), s, replace = False)
     # obtain values of beta
-    beta  = sample_betas(p, bidx, method = signal, bfix = bfix)
+    beta   = sample_betas(p, bidx, method = signal, bfix = bfix)
     # obtain sd from signal-to-noise ratio
-    se    = np.max(np.abs(beta)) / snr
+    signal = np.mean(np.abs(beta[beta!=0]))
+    se     = signal / snr
     # calculate the responses
-    y     = get_responses(X,     beta, se)
-    ytest = get_responses(Xtest, beta, se)
+    y      = get_responses(X,     beta, se)
+    ytest  = get_responses(Xtest, beta, se)
     return X, y, Xtest, ytest, beta, se
 
 

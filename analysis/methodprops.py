@@ -199,7 +199,7 @@ def plot_metainfo():
     plotmeta['em_iridge'] = \
         PlotInfo(color     = "#93AA00", # Vivid Yellowish Green
                  facecolor = "#93AA00",
-                 label     = "IRidge (EM)",
+                 label     = "IRidge-EM",
                  marker    = "D",
                  size      = 8,
                  linewidth = 2,
@@ -209,17 +209,27 @@ def plot_metainfo():
     plotmeta['ebmr_lasso'] = \
         PlotInfo(color     = "#3A6200", # Dark Green
                  facecolor = "None",
-                 label     = "EBMR (DExp)",
+                 label     = "EBMR (DExp, Py)",
                  marker    = "v",
                  size      = 8,
                  linewidth = 2,
                  linestyle = "solid",
                  zorder    = 30,
                 )
-    plotmeta['ebmr_ash'] = \
+    plotmeta['ebmr_ashR'] = \
         PlotInfo(color     = "#6DB802", # Light Green
                  facecolor = "#6DB802",
-                 label     = "EBMR (ash)",
+                 label     = "EBMR (mix-DExp, R)",
+                 marker    = "<",
+                 size      = 8,
+                 linewidth = 2,
+                 linestyle = "solid",
+                 zorder    = 30,
+                )
+    plotmeta['ebmr_ash'] = \
+        PlotInfo(color     = "#A5BD82", # Light Gray Green
+                 facecolor = "#A5BD82",
+                 label     = "EBMR (mix-point, Py)",
                  marker    = "<",
                  size      = 8,
                  linewidth = 2,

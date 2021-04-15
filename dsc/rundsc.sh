@@ -22,7 +22,7 @@ trial_outdir() {
 
 case $1 in
     "append")
-        echo ${DSC_CMD} linreg.dsc --target ${TARGET} -c 16 -s existing
+        ${DSC_CMD} linreg.dsc --target ${TARGET} -c 16 -s existing
         ;;
     "trial-append")
         OUTDIR=$(trial_outdir ${TARGET})
