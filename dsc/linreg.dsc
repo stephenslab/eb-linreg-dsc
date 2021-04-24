@@ -31,7 +31,7 @@ DSC:
                susie, varbvs, varbvsmix, blasso, bayesb,
                mr_ash, mr_ash_init,
                em_vamp, em_vamp_ash,
-               ebmr_ash, ebmr_lasso,
+               ebmr_ash, ebmr_lasso, ebmr_ashR,
                em_iridge
     fit_cpt:   ridge, lasso, elastic_net,
                susie, varbvs, mr_ash, mr_ash_init,
@@ -63,10 +63,10 @@ simparams:
 # pve: proportion of variance explained (required for equicorrgauss.py)
 # snr: signal-to-noise ratio (required for changepoint.py)
   dims:    R{list(c(n=500, p=200),
-                  c(n=100, p=200))}
-                  #c(n=200, p=100))}
+                  c(n=500, p=10000))}
   sfix:    None
   bfix:    None
+  sfrac:   None
   basis_k: None
   signal:  "normal"
   $X:      X
@@ -80,13 +80,13 @@ simparams:
   $se:     sigma
 
 equicorrgauss(simparams): equicorrgauss.py
-  sfrac:   0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0
-  pve:     0.5, 0.95
+  sfix:    1, 2, 5, 10, 20, 50, 100, 200
+  pve:     0.2, 0.5, 0.95
   rho:     0.95
 
 indepgauss(simparams):    equicorrgauss.py
-  sfrac:   0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0
-  pve:     0.5, 0.95
+  sfix:    1, 2, 5, 10, 20, 50, 100, 200
+  pve:     0.2, 0.5, 0.95
   rho:     0.0
 
 changepoint(simparams):   changepoint.py

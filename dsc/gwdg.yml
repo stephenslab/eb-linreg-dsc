@@ -1,0 +1,57 @@
+# To run the DSC on the GWDG cluster, connect to a GWDG login
+# node, and run this:
+#
+#  dsc --host gwdg.yml linreg.dsc
+# 
+# Note that you have to load the modules first
+# module load gcc (L0Learn was installed using gcc/10.2.0)
+# module load intel-parallel-studio/cluster.2020.4 (R installed with MKL)
+#
+# R and Python could be loaded as modules in frontends and sbatch jobs
+# module load R/4.0.4
+# conda activate /cbscratch/sbanerj/software/python/envs/py39
+#
+# Somehow, loading conda and local modules are not being processed by 
+# jobs submitted by DSC.
+# Hence I used the following hack:
+# export PATH="/cbscratch/sbanerj/software/R/R-4.0.4/bin:${PATH}"
+# export PATH="/cbscratch/sbanerj/software/python/envs/py39/bin:${PATH}"
+#
+#
+#
+# Error on GWDG:
+# Error: mkl-service + Intel(R) MKL: MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library.
+#	Try to import numpy first or set the threading layer accordingly. Set MKL_SERVICE_FORCE_INTEL to force it.
+# export MKL_SERVICE_FORCE_INTEL=1
+# export OMP_NUM_THREADS=1
+#
+
+DSC:
+  gwdg:
+    address: localhost
+    queue_type: pbs
+    status_check_interval: 60
+    max_running_jobs: 4
+    task_template: |
+      #!/bin/bash
+      #SBATCH -A cramer
+      #SBATCH -p em
+      #SBATCH --time=2-00:00:00
+      #SBATCH --exclusive
+      #SBATCH -N 1
+      module load gcc/10.2.0
+      module load intel-parallel-studio/cluster.2020.4
+      export PATH="/cbscratch/sbanerj/software/R/R-4.0.4/bin:$PATH"
+      export PATH="/cbscratch/sbanerj/software/python/envs/py39/bin:$PATH"
+      export MKL_SERVICE_FORCE_INTEL=1
+      export OMP_NUM_THREADS=16
+    submit_cmd: sbatch {job_file}
+    submit_cmd_output: "Submitted batch job {job_id}"
+    status_cmd: squeue --job {job_id}
+    kill_cmd: scancel {job_id}
+
+default:
+  queue: gwdg
+  instances_per_job: 256
+  instances_per_node: 16
+  cpus_per_instance: 1

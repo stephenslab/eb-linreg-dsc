@@ -1,10 +1,16 @@
+# Python / R 
 __pycache__
 .ipynb_checkpoints
 .Rhistory
+
+# DSC outputs
 *.swp
 **/.dsc
-dsc/dsc_result
-dsc/dsc_result*
-dsc/trial
-dsc/trial*
+dsc_result*
+trial*
+
+# Development boilerplate
 dev/
+
+# Slurm job outputs
+slurm-*.out
