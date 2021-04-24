@@ -14,13 +14,15 @@ DSC:
              L0Learn,
              BGLR,
              ncvreg
-  python_modules: numpy
+  python_modules: numpy,
+                  vampyre,
+                  ebmrPy
   lib_path:  functions
   exec_path: modules/simulate,
              modules/fit,
              modules/predict,
              modules/score
-  output: dsc_result_changepoint
+  output:    ../dsc_result
   replicate: 20
   define:
     simulate:  indepgauss, equicorrgauss

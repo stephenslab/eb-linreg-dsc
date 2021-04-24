@@ -1,0 +1,43 @@
+# To run the DSC on the midway2 cluster, connect to a midway2 login
+# node, and run this:
+#
+#  dsc --host midway2.yml linreg.dsc
+# 
+# Note that you have to load the modules first
+# module load R
+# module load gcc (L0Learn was installed using gcc/10.2.0)
+# conda activate py38
+#
+# Error on midway2:
+# Error: mkl-service + Intel(R) MKL: MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library.
+#	Try to import numpy first or set the threading layer accordingly. Set MKL_SERVICE_FORCE_INTEL to force it.
+# export MKL_SERVICE_FORCE_INTEL=1
+# export OMP_NUM_THREADS=1
+#
+
+DSC:
+  midway2:
+    address: localhost
+    queue_type: pbs
+    status_check_interval: 60
+    max_running_jobs: 4
+    task_template: |
+      #!/bin/bash
+      #SBATCH --time=6:00:00
+      #SBATCH --partition=broadwl
+      #SBATCH -p mstephens
+      #SBATCH --exclusive
+      module load R/3.6.1
+      module load gcc/10.2.0
+      conda activate py38
+      export OMP_NUM_THREADS=1
+    submit_cmd: sbatch {job_file}
+    submit_cmd_output: "Submitted batch job {job_id}"
+    status_cmd: squeue --job {job_id}
+    kill_cmd: scancel {job_id}
+
+default:
+  queue: midway2
+  instances_per_job: 200
+  instances_per_node: 28
+  cpus_per_instance: 1
