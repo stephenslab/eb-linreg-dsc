@@ -31,14 +31,14 @@ DSC:
   gwdg:
     address: localhost
     queue_type: pbs
-    status_check_interval: 60
+    status_check_interval: 20
     max_running_jobs: 30
     task_template: |
       #!/bin/bash
       #SBATCH -A cramer
       #SBATCH -p em
-      #SBATCH --time=2-00:00:00
-      #SBATCH --exclusive
+      #SBATCH --time=0-00:05:00
+      #SBATCH -c 1
       #SBATCH -N 1
       #SBATCH -o slurm-out/slurm-%j.out
       #SBATCH -e slurm-out/slurm-%j.err
@@ -56,7 +56,7 @@ DSC:
 
 default:
   queue: gwdg
-  instances_per_job: 2048
-  instances_per_node: 16
+  instances_per_job: 2
+  instances_per_node: 1
   cpus_per_instance: 1
-  time_per_instance: '00:20:00'
+  time_per_instance: '00:05:00'

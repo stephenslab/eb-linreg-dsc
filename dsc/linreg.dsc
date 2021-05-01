@@ -22,7 +22,8 @@ DSC:
              modules/fit,
              modules/predict,
              modules/score
-  output:    ../dsc_result
+  output:    ../dsc_result/linreg
+  # output:   ../dsc_result/trendfilter
   replicate: 20
   define:
     simulate:  indepgauss, equicorrgauss
@@ -31,7 +32,7 @@ DSC:
                susie, varbvs, varbvsmix, blasso, bayesb,
                mr_ash, mr_ash_init,
                em_vamp, em_vamp_ash,
-               ebmr_ash, ebmr_lasso, ebmr_ashR,
+               ebmr_ash, ebmr_lasso,
                em_iridge
     fit_cpt:   ridge, lasso, elastic_net,
                susie, varbvs, mr_ash, mr_ash_init,
@@ -39,7 +40,7 @@ DSC:
                ebmr_ash, ebmr_lasso, ebmr_ashR,
                em_iridge
     predict:   predict_linear
-    score:     mse, mae
+    score:     mse
   run: 
     all:       simulate * fit * predict * score
     cpt:       changepoint * fit_cpt * predict * score
@@ -95,8 +96,6 @@ changepoint(simparams):   changepoint.py
   sfix:    1, 2, 4, 6, 8, 10, 15, 20
   basis_k: 0, 1, 2
   signal:  "gamma"
-  #signal:  "fixed"
-  #bfix:    8
 
 
 # fit modules

@@ -13,4 +13,5 @@ trial*
 dev/
 
 # Slurm job outputs
+slurm-out/
 slurm-*.out
