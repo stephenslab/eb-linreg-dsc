@@ -5,45 +5,46 @@
 # methods in different scenarios.
 # This is designed to reproduce the results of the manuscript of Mr. Ash by Kim, Wang, Carbonetto and Stephens
 DSC:
-  R_libs:    MASS, 
-             glmnet, 
-             susieR, 
-             varbvs >= 2.6-3,
-             mr.ash.alpha,
-             ebmr.alpha,
-             L0Learn,
-             BGLR,
-             ncvreg
+  R_libs:         MASS, 
+                  glmnet, 
+                  susieR, 
+                  varbvs >= 2.6-3,
+                  mr.ash.alpha,
+                  ebmr.alpha,
+                  L0Learn,
+                  BGLR,
+                  ncvreg
   python_modules: numpy,
                   vampyre,
                   ebmrPy
-  lib_path:  functions
-  exec_path: modules/simulate,
-             modules/fit,
-             modules/predict,
-             modules/score
-  output:    ../dsc_result/linreg
-  # output:   ../dsc_result/trendfilter
-  replicate: 20
+  lib_path:       functions
+  exec_path:      modules/simulate,
+                  modules/fit,
+                  modules/predict,
+                  modules/score
+  output:         ../dsc_result/linreg
+  # output:         ../dsc_result/trendfilter
+  replicate:      20
   define:
-    simulate:  indepgauss, equicorrgauss
-    fit:       ridge, lasso, elastic_net,
-               lasso_1se, elastic_net_1se, scad, mcp, l0learn,
-               susie, varbvs, varbvsmix, blasso, bayesb,
-               mr_ash, mr_ash_init,
-               em_vamp, em_vamp_ash,
-               ebmr_ash, ebmr_lasso,
-               em_iridge
-    fit_cpt:   ridge, lasso, elastic_net,
-               susie, varbvs, mr_ash, mr_ash_init,
-               em_vamp, em_vamp_ash,
-               ebmr_ash, ebmr_lasso, ebmr_ashR,
-               em_iridge
-    predict:   predict_linear
-    score:     mse
+    simulate:     indepgauss, equicorrgauss
+    fit:          ridge, lasso, elastic_net,
+                  lasso_1se, elastic_net_1se, 
+                  scad, mcp, l0learn,
+                  susie, varbvs, varbvsmix, blasso, bayesb,
+                  mr_ash, mr_ash_init,
+                  em_vamp, em_vamp_ash,
+                  ebmr_ash, ebmr_lasso,
+                  em_iridge
+    fit_cpt:      ridge, lasso, elastic_net,
+                  susie, varbvs, mr_ash, mr_ash_init,
+                  em_vamp, em_vamp_ash,
+                  ebmr_ash, ebmr_lasso, ebmr_ashR,
+                  em_iridge
+    predict:      predict_linear
+    score:        mse
   run: 
-    all:       simulate * fit * predict * score
-    cpt:       changepoint * fit_cpt * predict * score
+    linreg:       simulate * fit * predict * score
+    trendfilter:  changepoint * fit_cpt * predict * score
 
 
 # simulate modules

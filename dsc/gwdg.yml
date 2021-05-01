@@ -17,8 +17,11 @@
 #     source /usr/users/sbanerj/.bashrc
 #
 # Each exclusive GWDG node has 16 cores and 128GB memory.
-# Maximum of 2048 jobs are submitted to each node (with threading -c 16)
-# which averages to 128 jobs per core. 
+# Maximum of 1024 pipeline module calculationss are submitted 
+# in each DSC job (with threading -c 16),
+# which averages to 64 jobs per core.
+# Around 10min per module would require 10h for a job
+# Around 2min per module would require 2h for a job
 #
 # Error on GWDG:
 # Error: mkl-service + Intel(R) MKL: MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library.
@@ -32,7 +35,7 @@ DSC:
     address: localhost
     queue_type: pbs
     status_check_interval: 60
-    max_running_jobs: 30
+    max_running_jobs: 100
     task_template: |
       #!/bin/bash
       #SBATCH -A cramer
@@ -56,7 +59,7 @@ DSC:
 
 default:
   queue: gwdg
-  instances_per_job: 2048
+  instances_per_job: 1024
   instances_per_node: 16
   cpus_per_instance: 1
-  time_per_instance: '00:20:00'
+  time_per_instance: '10:00:00'
