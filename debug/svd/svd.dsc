@@ -7,13 +7,13 @@ DSC:
   run: data * svd
 
 normalpy: normal.py
-  n:       500
-  p:       200
+  n:       50
+  p:       20
   $X:      X
 
 normalR: R(X <- matrix(0, n, p); X[,seq(1,p)] = rnorm(n * p))
-  n:       500
-  p:       200
+  n:       50
+  p:       20
   $X:      X
 
 svd: R(s <- svd(X))

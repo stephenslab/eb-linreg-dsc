@@ -23,7 +23,7 @@ DSC:
                   modules/predict,
                   modules/score
   output:         ../dsc_result/linreg
-  # output:         ../dsc_result/trendfilter
+  #output:         ../dsc_result/trendfilter
   replicate:      20
   define:
     simulate:     indepgauss, equicorrgauss
@@ -33,7 +33,7 @@ DSC:
                   susie, varbvs, varbvsmix, blasso, bayesb,
                   mr_ash, mr_ash_init,
                   em_vamp, em_vamp_ash,
-                  ebmr_ash, ebmr_lasso,
+                  ebmr_ash, ebmr_lasso, ebmr_ashR,
                   em_iridge
     fit_cpt:      ridge, lasso, elastic_net,
                   susie, varbvs, mr_ash, mr_ash_init,
