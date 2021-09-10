@@ -1,6 +1,5 @@
 import numpy as np
 import collections
-from sos.utils import env
 
 def parse_input_params(dims, sfrac=0.5, sfix=None):
     n = dims[0]
@@ -54,6 +53,7 @@ def equicorr_predictors (n, p, s, pve, signal = "normal", seed = None, rho = 0.5
     X is sampled from a multivariate normal, with covariance matrix S.
     S has unit diagonal entries and constant off-diagonal entries rho.
     '''
+    if seed is not None: np.random.seed(seed)
     iidX  = np.random.normal(size = n * 2 * p).reshape(n * 2, p)
     comR  = np.random.normal(size = n * 2).reshape(n * 2, 1)
     Xall  = comR * np.sqrt(rho) + iidX * np.sqrt(1 - rho)
@@ -75,6 +75,7 @@ def changepoint_predictors (n, p, s, snr, k = 0, signal = "normal", seed = None,
     '''
     Trend-filtering data. 
     '''
+    if seed is not None: np.random.seed(seed)
     X     = trend_filtering_basis(n, p, k)
     Xtest = X.copy()
     # sample betas
@@ -144,11 +145,11 @@ def sample_betas_fixtrend(p, s, bfix):
     bidx = np.random.choice(p - 1, nc, replace = False)
     # create non-zero sequence of beta
     if isinstance(bfix, (collections.abc.Sequence, np.ndarray)):
-        env.logger.info("Sequence value of bfix.")
+        # env.logger.info("Sequence value of bfix.")
         assert len(bfix) == nc, "For fixtrend, length of input coefficient sequence must be half of the number of non-zero coefficients"
         nonzerob = bfix.copy()
     else:
-        env.logger.info("Float value of bfix.")
+        # env.logger.info("Float value of bfix.")
         nonzerob = np.repeat(bfix, nc)
     # update beta
     beta[bidx]     = nonzerob
