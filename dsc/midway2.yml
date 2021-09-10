@@ -19,7 +19,8 @@
 # cpus_per_instance
 #   How many CPUs for each module instance, should be equal to OMP_NUM_THREADS
 # instances_per_node
-#   How many parallel module instances allowed on each node, should be equal to --cpus_per_task
+#   How many parallel module instances allowed on each node.
+#   instances_per_node * cpus_per_instance should be equal to --cpus_per_task
 #   Max 28 for mstephens / broadwl in RCC
 #   I used 4 so that the jobs do not have to wait for exclusive nodes
 # time_per_instance

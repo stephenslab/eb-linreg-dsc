@@ -22,7 +22,7 @@ DSC:
                   modules/fit,
                   modules/predict,
                   modules/score
-  output:         ../dsc_result/linreg
+  output:         /scratch/midway2/saikatbanerjee/work/sparse-regression/eb-linreg-dsc/dsc_result/linreg
   #output:         ../dsc_result/trendfilter
   replicate:      20
   define:
