@@ -37,7 +37,7 @@ if (!is.null(opt$conditions)) {
 } else {
   conditions = NULL
 }
-print(opt$groups)
+# print(opt$groups)
 if (!is.null(opt$groups)) {
   groups = get_input_modules(opt$groups, opt$separator, opt$cmarker)
 } else {
@@ -47,7 +47,7 @@ if (!is.null(opt$groups)) {
 
 
 dscout <- dscquery(dsc.outdir = opt$outdir,
-                   targets = c(targets),
+                   targets = targets,
                    conditions = conditions,
                    groups = groups,
                    verbose = TRUE)
